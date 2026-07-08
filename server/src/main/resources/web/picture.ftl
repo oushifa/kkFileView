@@ -40,6 +40,7 @@
 <script>
     // 获取反代配置
     var kkagent = '${kkagent}';
+    var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     // 处理图片URL，如果需要反代则替换URL
     function processImageUrls() {
         var imageElements = document.querySelectorAll('#image li div');
@@ -49,8 +50,10 @@
             var finalUrl = originalUrl;
             
             // 检查是否需要反代
-            if (kkagent === 'true') {
-                finalUrl = '${baseUrl}' + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(originalUrl));
+            // 如果页面是 HTTPS，而图片是 HTTP（混合内容 Mixed Content），浏览器会拦截，此时强制通过 getCorsFile 代理加载
+            var isMixedContent = window.location.protocol === 'https:' && originalUrl.startsWith('http://');
+            if (kkagent === 'true' || isMixedContent) {
+                finalUrl = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(originalUrl)) + "&key=${kkkey}";
             }
             
             // 更新src属性
